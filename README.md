@@ -1,46 +1,48 @@
-# Node.js Projesi
+# Voice Agent Project
 
-Bu basit bir Node.js web uygulamasıdır.
+Text and voice based AI agent that can answer questions about products.
 
-## Kurulum
+## Features
+
+- OpenAI GPT integration for intelligent responses
+- Text-to-Speech capability using OpenAI TTS
+- Supabase Vector DB for semantic product search
+- Real-time audio streaming
+- Multi-tenant architecture
+
+## Installation
 
 ```bash
-# Bağımlılıkları yükle
+# Install dependencies
 npm install
 
-# Uygulamayı başlat
+# Start the application
 npm start
 
-# Geliştirme modunda çalıştır (nodemon ile)
+# Run in development mode (with nodemon)
 npm run dev
 ```
-
-## Kullanım
-
-Uygulama başlatıldıktan sonra:
-
-- Ana sayfa: `http://localhost:3000`
-- Sağlık kontrolü: `http://localhost:3000/api/health`
 
 ## API Endpoints
 
-- `GET /` - Ana sayfa
-- `GET /api/health` - Sunucu sağlık durumu
+- `POST /api/ask` - Ask questions about products (returns audio)
+- `POST /api/ask/text` - Ask questions (text-only response)
+- `GET /api/voices` - List available TTS voices
 
-## Özellikler
-
-- Express.js web framework
-- JSON API endpoints
-- Hata yönetimi
-- Statik dosya sunumu
-- Sağlık kontrolü endpoint'i
-
-## Geliştirme
+## Development
 
 ```bash
-# Geliştirme bağımlılıklarını yükle
+# Install development dependencies
 npm install --save-dev nodemon
 
-# Geliştirme modunda çalıştır
+# Run in development mode
 npm run dev
 ```
+
+## Architecture
+
+- Express.js web framework
+- OpenAI GPT & TTS APIs
+- Supabase Vector Database
+- Streaming audio responses
+- Multi-tenant customer isolation
