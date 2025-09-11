@@ -1,0 +1,31 @@
+{
+  "name": "nodejs-project",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Basit bir Node.js web uygulaması",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "web",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.56.0",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "ioredis": "^5.7.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^5.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
