@@ -16,6 +16,22 @@ Text and voice based AI agent that can answer questions about products.
 # Install dependencies
 npm install
 
+# Configure credentials
+# 1. Create src/config/CloudTTSCredential.json with your Google Cloud credentials:
+{
+  "type": "service_account",
+  "project_id": "your-project-id",
+  "private_key_id": "your-private-key-id",
+  "private_key": "your-private-key",
+  "client_email": "your-service-account-email",
+  "client_id": "your-client-id"
+}
+
+# 2. Create .env file with required environment variables:
+OPENAI_API_KEY=your-openai-api-key
+REDIS_URL=redis://localhost:6379
+GOOGLE_APPLICATION_CREDENTIALS=src/config/CloudTTSCredential.json
+
 # Start the application
 npm start
 
