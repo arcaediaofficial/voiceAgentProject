@@ -80,3 +80,8 @@ logs
 # Temporary folders
 tmp/
 temp/
+
+# Credentials
+src/config/CloudTTSCredential.json
+**/credentials/
+**/secrets/

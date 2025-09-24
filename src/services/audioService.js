@@ -1,38 +1,43 @@
-import fetch from 'node-fetch';
+import textToSpeech from '@google-cloud/text-to-speech';
+import { Readable } from 'stream';
 import Logger from '../utils/logging.js';
 import 'dotenv/config';
 
 class AudioService {
   constructor() {
-    this.baseUrl = 'https://api.openai.com/v1/audio/speech';
-    this.apiKey = process.env.OPENAI_API_KEY;
+    this.client = new textToSpeech.TextToSpeechClient({
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+    });
+    this.defaultVoice = {
+      languageCode: 'en-US',
+      name: 'en-US-Standard-A',
+      ssmlGender: 'FEMALE'
+    };
   }
 
-  async generateAudioStream(text) {
+  async generateAudioStream(text, voiceConfig = {}) {
     try {
-      Logger.audioGeneration('coral', text.length);
+      const voice = { ...this.defaultVoice, ...voiceConfig };
+      Logger.audioGeneration(voice.name, text.length);
 
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'tts-1',
-          voice: 'coral',
-          input: text,
-          response_format: 'mp3'
-        })
-      });
+      const request = {
+        input: { text },
+        voice: voice,
+        audioConfig: { 
+          audioEncoding: 'MP3',
+          speakingRate: 1.2
+        }
+      };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`OpenAI streaming error: ${response.status} - ${errorText}`);
-      }
-
-      Logger.success('OpenAI streaming started', { voice: 'coral' });
-      return response.body;
+      const [response] = await this.client.synthesizeSpeech(request);
+      Logger.success('Google TTS completed', { voice: voice.name });
+      
+      // Buffer'ı stream'e çevir
+      const stream = new Readable();
+      stream.push(response.audioContent);
+      stream.push(null);
+      
+      return stream;
 
     } catch (error) {
       Logger.error('Audio generation failed', error);

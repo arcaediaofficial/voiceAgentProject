@@ -14,6 +14,7 @@ class AskController {
     try {
       const { productCode, question } = req.body;
       const customerId = req.customerId;
+      
       // Validasyon
       if (!productCode || !question) {
         return res.status(400).json({
@@ -24,23 +25,19 @@ class AskController {
 
       console.log(`🤔 Müşteri ${customerId} için soru: ${question} (Ürün: ${productCode})`);
 
-      // 1. Paralel işlemler için hazırlık
+      // Paralel işlemler için hazırlık
       const startTime = Date.now();
       let stepTime = Date.now();
       
-      // Embedding'i bir kere oluştur ve paylaş
-      const embedding = await aiService.createEmbedding(question);
-      Logger.info('Embedding created', { timeTaken: `${Date.now() - stepTime}ms` });
-      
-      // Vector DB'den ürün verilerini çek
+      // Vector DB'den ürün verilerini çek (Redis kontrolü içeride yapılacak)
       stepTime = Date.now();
-      const productData = await productService.getProductDataFromVectorDB(customerId, productCode, question, embedding);
+      const productData = await productService.getProductDataFromVectorDB(customerId, productCode, question);
       Logger.info('Product data retrieved', { 
         timeTaken: `${Date.now() - stepTime}ms`,
         recordCount: productData.length 
       });
-      
-      // AI yanıtı üret
+
+      // AI yanıtını al
       stepTime = Date.now();
       const aiResponse = await aiService.generateResponse(question, { productData, productCode });
       Logger.info('AI response generated', { 
@@ -48,43 +45,37 @@ class AskController {
         responseLength: aiResponse.length 
       });
 
+      // Cümlelere ayır
+      const sentences = aiResponse.match(/[^.!?]+[.!?]+/g) || [aiResponse];
+      
+      // Response headers'ı hazırla
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Transfer-Encoding', 'chunked');
+
+      // Metadata'yı custom header olarak gönder
+      const metadata = {
+        responseText: aiResponse,
+        customerId: customerId,
+        productCode: productCode,
+        sentences: sentences.map(s => s.trim()).filter(Boolean)
+      };
+      res.setHeader('X-Response-Metadata', Buffer.from(JSON.stringify(metadata)).toString('base64'));
+
+      // Tüm cümleleri birleştirip tek ses dosyası oluştur
+      try {
+        const audioStream = await audioService.generateAudioStream(aiResponse);
+        audioStream.pipe(res);
+      } catch (error) {
+        Logger.error('Audio generation failed', { error: error.message });
+        res.status(500).json({ error: 'Audio generation failed' });
+      }
+
       Logger.success(`Total processing completed`, { 
         customerId, 
         productCode, 
-        totalTime: `${Date.now() - startTime}ms`
+        totalTime: `${Date.now() - startTime}ms`,
+        responseLength: aiResponse.length
       });
-
-      // 2. Ses üretimini paralel başlat ve response headers'ı hazırla
-      res.setHeader('Content-Type', 'audio/mpeg');
-      res.setHeader('Transfer-Encoding', 'chunked');
-      
-      // Custom header'ları hemen gönder
-      const metadata = Buffer.from(JSON.stringify({
-        responseText: aiResponse,
-        customerId: customerId,
-        productCode: productCode
-      })).toString('base64');
-      res.setHeader('X-Response-Metadata', metadata);
-
-      // Ses üretimini başlat
-      stepTime = Date.now();
-      const audioStream = await audioService.generateAudioStream(aiResponse);
-      Logger.info('Audio stream ready', { 
-        timeTaken: `${Date.now() - stepTime}ms`,
-        totalTimeSoFar: `${Date.now() - startTime}ms`
-      });
-      
-      // Stream'i pipe et
-      audioStream.pipe(res);
-      // Hata yönetimi ekle
-      audioStream.on('error', (error) => {
-        Logger.error('Audio streaming error', { error: error.message });
-        if (!res.headersSent) {
-          res.status(500).json({ error: 'Audio streaming failed' });
-        }
-      });
-
-      audioStream.pipe(res);
 
     } catch (error) {
       Logger.error('Ask operation failed', { error: error.message });

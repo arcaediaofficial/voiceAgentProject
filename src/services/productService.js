@@ -1,5 +1,6 @@
 import supabaseManager from '../config/supabaseManager.js';
 import aiService from './aiService.js';
+import redisManager from '../config/redisManager.js';
 import Logger from '../utils/logging.js';
 
 class ProductService {
@@ -14,20 +15,33 @@ class ProductService {
   }
 
   // Supabase Vector DB'den ürün verilerini çek
-  async getProductDataFromVectorDB(customerId, productCode, question, existingEmbedding = null) {
+  async getProductDataFromVectorDB(customerId, productCode, question) {
     try {
       const startTime = Date.now();
+
+      // Önce Redis'ten kontrol et
+      const cachedData = await redisManager.getProductData(customerId, productCode);
+      if (cachedData) {
+        Logger.info('Product data retrieved from cache', { 
+          customerId, 
+          productCode,
+          timeTaken: `${Date.now() - startTime}ms`,
+          source: 'redis'
+        });
+        return cachedData;
+      }
+
       Logger.supabaseConnection(customerId);
       
-      // Supabase client ve embedding'i paralel olarak al
+      // Redis'te yoksa embedding oluştur ve Supabase client al
       const [supabaseClient, embedding] = await Promise.all([
         this.getSupabaseClient(customerId),
-        existingEmbedding || aiService.createEmbedding(question)
+        aiService.createEmbedding(question)
       ]);
       
       Logger.info('Client and embedding ready', { 
         timeTaken: `${Date.now() - startTime}ms`,
-        hasExistingEmbedding: !!existingEmbedding
+        source: 'vector_db'
       });
 
       // Supabase'de vector search yap
@@ -44,13 +58,21 @@ class ProductService {
       }
 
       // Alternatif olarak, eğer vector search çalışmazsa normal sorgu yap
+      let productData;
       if (!data || data.length === 0) {
         Logger.warning('Vector search returned no results, trying normal query', { customerId, productCode });
-        return await this.getProductDataFromNormalDB(supabaseClient, productCode);
+        productData = await this.getProductDataFromNormalDB(supabaseClient, productCode);
+      } else {
+        productData = data;
       }
 
-      Logger.supabaseQuery(productCode, data.length);
-      return data;
+      // Verileri Redis'e kaydet
+      if (productData && productData.length > 0) {
+        await redisManager.setProductData(customerId, productCode, productData);
+      }
+
+      Logger.supabaseQuery(productCode, productData.length);
+      return productData;
 
     } catch (error) {
       Logger.error('Product data retrieval failed', { customerId, productCode, error: error.message });
@@ -233,6 +255,9 @@ class ProductService {
       if (error) {
         throw new Error(`Product update error: ${error.message}`);
       }
+
+      // Ürün güncellendiğinde Redis cache'ini temizle
+      await redisManager.deleteProductData(customerId, productCode);
 
       Logger.success('Product updated successfully', { customerId, productCode });
       return data?.[0] || null;

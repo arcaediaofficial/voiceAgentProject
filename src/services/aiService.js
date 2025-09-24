@@ -32,6 +32,50 @@ class AIService {
     }
   }
 
+  // OpenAI ile stream cevap üret
+  async generateResponseStream(question, context) {
+    try {
+      Logger.aiRequest(question, context.productCode || 'unknown');
+
+      const stream = await this.openai.chat.completions.create({
+        model: 'gpt-3.5-turbo-1106',
+        messages: [
+          {
+            role: 'system',
+            content: this.buildSystemPrompt(context)
+          },
+          {
+            role: 'user',
+            content: question
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0.3,
+        stream: true
+      });
+
+      // Stream'i Readable stream'e dönüştür
+      const { Readable } = await import('stream');
+      const readableStream = new Readable({
+        read() {}
+      });
+
+      // Her chunk geldiğinde stream'e aktar
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          readableStream.push(content);
+        }
+      }
+      readableStream.push(null);
+
+      return readableStream;
+    } catch (error) {
+      Logger.error('AI response stream generation failed', error);
+      throw error;
+    }
+  }
+
   // OpenAI ile cevap üret
   async generateResponse(question, context) {
     try {
