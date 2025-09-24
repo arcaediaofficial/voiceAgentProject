@@ -5,7 +5,7 @@ Text and voice based AI agent that can answer questions about products.
 ## Features
 
 - OpenAI GPT integration for intelligent responses
-- Text-to-Speech capability using OpenAI TTS
+- Text-to-Speech capability using Google Cloud TTS
 - Supabase Vector DB for semantic product search
 - Real-time audio streaming
 - Multi-tenant architecture
