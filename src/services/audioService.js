@@ -5,8 +5,17 @@ import 'dotenv/config';
 
 class AudioService {
   constructor() {
+    let credentials;
+    
+    // Railway'de base64 olarak saklanan credentials'ı kontrol et
+    if (process.env.GOOGLE_CREDENTIALS_BASE64) {
+      const credentialsJson = Buffer.from(process.env.GOOGLE_CREDENTIALS_BASE64, 'base64').toString();
+      credentials = JSON.parse(credentialsJson);
+    }
+
     this.client = new textToSpeech.TextToSpeechClient({
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      credentials: credentials || undefined,
+      keyFilename: !credentials ? process.env.GOOGLE_APPLICATION_CREDENTIALS : undefined
     });
     this.defaultVoice = {
       languageCode: 'en-US',

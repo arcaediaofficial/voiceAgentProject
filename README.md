@@ -32,7 +32,13 @@ OPENAI_API_KEY=your-openai-api-key
 REDIS_URL=your-redis-url # Local: redis://localhost:6379, Railway: redis://default:PASSWORD@trolley.proxy.rlwy.net:36273
 GOOGLE_APPLICATION_CREDENTIALS=src/config/CloudTTSCredential.json
 
-# For Railway deployment, set these environment variables in Railway Dashboard
+# For Railway deployment:
+# 1. Convert Google Cloud credentials to base64:
+#    base64 -i src/config/CloudTTSCredential.json
+# 2. Set these environment variables in Railway Dashboard:
+#    GOOGLE_CREDENTIALS_BASE64=<base64_output_from_step_1>
+#    REDIS_URL=redis://default:PASSWORD@trolley.proxy.rlwy.net:36273
+#    OPENAI_API_KEY=your-openai-api-key
 
 # Start the application
 npm start
