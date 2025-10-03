@@ -3,9 +3,15 @@ import Logger from '../utils/logging.js';
 
 class RedisManager {
   constructor() {
-    this.client = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
-    });
+    const redisConfig = {
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      socket: {
+        tls: false,
+        rejectUnauthorized: false
+      }
+    };
+    
+    this.client = createClient(redisConfig);
 
     this.client.on('error', (err) => Logger.error('Redis Client Error', err));
     this.client.on('connect', () => Logger.info('Redis Client Connected'));

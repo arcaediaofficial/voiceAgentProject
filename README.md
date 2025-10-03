@@ -29,8 +29,10 @@ npm install
 
 # 2. Create .env file with required environment variables:
 OPENAI_API_KEY=your-openai-api-key
-REDIS_URL=redis://localhost:6379
+REDIS_URL=your-redis-url # Local: redis://localhost:6379, Railway: redis://default:PASSWORD@trolley.proxy.rlwy.net:36273
 GOOGLE_APPLICATION_CREDENTIALS=src/config/CloudTTSCredential.json
+
+# For Railway deployment, set these environment variables in Railway Dashboard
 
 # Start the application
 npm start
