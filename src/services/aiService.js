@@ -114,7 +114,7 @@ class AIService {
     const productContext = this.prepareProductContext(context.productData);
     
     return `You are a product advisor. Answer customer questions using the product information below.
-    Keep responses concise, clear, and direct. Focus only on the specific question asked.
+    Keep responses concise, clear, and direct. Focus only on the specific question asked. Do not say product code in the response.
     Add "Do you have any other questions?" at the end.
 
     Product Information:

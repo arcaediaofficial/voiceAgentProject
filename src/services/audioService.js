@@ -22,7 +22,6 @@ class AudioService {
         client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${process.env.GOOGLE_CLIENT_EMAIL}`
       };
     }
-    console.log(process.env.GOOGLE_PRIVATE_KEY);
 
     this.client = new textToSpeech.TextToSpeechClient({
       credentials: credentials || undefined,
@@ -30,7 +29,7 @@ class AudioService {
     });
     this.defaultVoice = {
       languageCode: 'en-US',
-      name: 'en-US-Neural2-F',
+      name: 'en-US-Chirp3-HD-Aoede',
       ssmlGender: 'FEMALE'
     };
   }
