@@ -13,7 +13,7 @@ class AudioService {
         type: process.env.GOOGLE_CREDENTIALS_TYPE,
         project_id: process.env.GOOGLE_PROJECT_ID,
         private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-        private_key: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.split('\\n').join('\n') : undefined,
+        private_key: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
         client_id: process.env.GOOGLE_CLIENT_ID,
         auth_uri: "https://accounts.google.com/o/oauth2/auth",
@@ -22,6 +22,7 @@ class AudioService {
         client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${process.env.GOOGLE_CLIENT_EMAIL}`
       };
     }
+    console.log(process.env.GOOGLE_PRIVATE_KEY);
 
     this.client = new textToSpeech.TextToSpeechClient({
       credentials: credentials || undefined,
@@ -29,7 +30,7 @@ class AudioService {
     });
     this.defaultVoice = {
       languageCode: 'en-US',
-      name: 'en-US-Standard-A',
+      name: 'en-US-Neural2-F',
       ssmlGender: 'FEMALE'
     };
   }
@@ -44,7 +45,7 @@ class AudioService {
         voice: voice,
         audioConfig: { 
           audioEncoding: 'MP3',
-          speakingRate: 1.2
+          speakingRate: 1.1
         }
       };
 
