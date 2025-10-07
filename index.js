@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import 'dotenv/config';
 const app = express();
 
@@ -6,6 +7,11 @@ const PORT = process.env.PORT || 3000;
 const API_PREFIX = process.env.API_PREFIX || '/api';
 
 // Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*', // Güvenlik için frontend URL'ini .env'den alın
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'x-api-key']
+}));
 app.use(express.json());
 app.use(express.static('public'));
 
